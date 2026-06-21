@@ -1,0 +1,44 @@
+{
+    "name": "agentic_rag",
+    "image": "nikolaik/python-nodejs:python3.12-nodejs24-bullseye",
+    "runArgs": [
+        "--name",
+        "agentic_rag_container"
+    ],
+    "features": {
+        "ghcr.io/devcontainers/features/python:1": {
+            "version": "3.12",
+            "toolsToInstall": [
+                "poetry"
+            ]
+        }
+    },
+    "customizations": {
+        "settings": {
+            "notebook.formatOnSave.enabled": true,
+            "[python]": {
+                "editor.formatOnSave": true,
+                "editor.codeActionsOnSave": {
+                    "source.fixAll": "explicit",
+                    "source.organizeImports": "explicit"
+                },
+                "editor.defaultFormatter": "charliermarsh.ruff"
+            }
+        },
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "yzhang.markdown-all-in-one",
+                "mutantdino.resourcemonitor",
+                "ms-toolsai.jupyter",
+                "ktnrg45.vscode-cython",
+                "tamasfe.even-better-toml",
+                "charliermarsh.ruff",
+                "PKief.material-icon-theme",
+                "GitHub.copilot",
+                "ms-vscode.makefile-tools"
+            ]
+        }
+    },
+    "postCreateCommand": "poetry install"
+}
