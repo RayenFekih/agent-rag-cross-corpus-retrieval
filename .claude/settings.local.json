@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__google_developer_knowledge__answer_query",
+      "mcp__google_developer_knowledge__get_documents"
+    ]
+  }
+}
