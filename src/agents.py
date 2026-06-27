@@ -1,53 +1,68 @@
 import logging
-from abc import ABC, abstractmethod
+
+from google.adk import Context
+from google.adk.agents import LlmAgent
+from google.adk.workflow import node
 
 from src.prompts import (
     EVALUATION_AGENT_SYSTEM_PROMPT,
-    EVALUATION_AGENT_USER_PROMPT,
-    QUERY_REWRITER_SYSTEM_PROMPT,
-    QUERY_REWRITER_USER_PROMPT,
+    LLM_GENERATOR_SYSTEM_PROMPT,
     SEARCH_PLAN_SYSTEM_PROMPT,
-    SEARCH_PLAN_USER_PROMPT,
+)
+from src.schemas import (
+    EvaluationInput,
+    EvaluationResult,
+    GeneratorInput,
+    SearchPlan,
+    SearchPlanInput,
 )
 from src.settings import settings
 
 logger = logging.getLogger(__name__)
 
 
-class Agent(ABC):
-    def __init__(self, name: str, llm: str, user_prompt: str, system_prompt: str):
-        self.name = name
-        self.llm = llm
-        self.user_prompt = user_prompt
-        self.system_prompt = system_prompt
+search_plan_agent = LlmAgent(
+    name="search_plan_agent",
+    model=settings.llm,
+    instruction=SEARCH_PLAN_SYSTEM_PROMPT,
+    input_schema=SearchPlanInput,
+    output_schema=SearchPlan,
+    description=(
+        "Rewrites the user query and produces a structured search plan "
+        "mapping each corpus to one or more retrieval tasks."
+    ),
+)
 
-    @abstractmethod
-    def generate(self, input_text: str) -> str:
-        ...
+evaluation_agent = LlmAgent(
+    name="evaluation_agent",
+    model=settings.llm,
+    instruction=EVALUATION_AGENT_SYSTEM_PROMPT,
+    input_schema=EvaluationInput,
+    output_schema=EvaluationResult,
+    description=(
+        "Evaluates whether the retrieved contexts are sufficient to answer "
+        "the user query. Returns a gap analysis when they are not."
+    ),
+)
+
+llm_generator_agent = LlmAgent(
+    name="llm_generator",
+    model=settings.llm,
+    instruction=LLM_GENERATOR_SYSTEM_PROMPT,
+    input_schema=GeneratorInput,
+    output_schema=str,
+    description=(
+        "Synthesizes a grounded final answer from the verified retrieved contexts."
+    ),
+)
 
 
-class QueryRewriterAgent(Agent):
-    def __init__(self):
-        super().__init__(name="QueryRewriter", llm=settings.llm,
-                         user_prompt=QUERY_REWRITER_USER_PROMPT, system_prompt=QUERY_REWRITER_SYSTEM_PROMPT)
+@node(name="retrieval_agent")
+async def retrieval_agent(ctx: Context, node_input: SearchPlan) -> list:
+    """Execute every query task in the search plan against Agent Search.
 
-    def generate(self, input_text: str) -> str:
-        ...
-
-
-class SearchPlanAgent(Agent):
-    def __init__(self):
-        super().__init__(name="SearchPlanAgent", llm=settings.llm,
-                         user_prompt=SEARCH_PLAN_USER_PROMPT, system_prompt=SEARCH_PLAN_SYSTEM_PROMPT)
-
-    def generate(self, input_text: str) -> str:
-        ...
-
-
-class EvaluationAgent(Agent):
-    def __init__(self):
-        super().__init__(name="EvaluationAgent", llm=settings.llm,
-                         user_prompt=EVALUATION_AGENT_USER_PROMPT, system_prompt=EVALUATION_AGENT_SYSTEM_PROMPT)
-
-    def generate(self, input_text: str) -> str:
-        ...
+    Calls search_agent_search() from src/retrieval.py for each corpus and
+    query task in search_plan.tasks, and returns a flat list of retrieved
+    document dicts with rank signals.
+    """
+    ...

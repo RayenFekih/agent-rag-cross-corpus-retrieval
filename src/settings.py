@@ -14,6 +14,12 @@ class Settings(BaseSettings):
     )
 
     llm: str = "gemini-3.5-flash"
+    PROJECT_ID: str = "iweb-dev-fatwatok-search-0"
+    LOCATION: str = "global"
+    APP_ID: str = "fatwa-semantic-search_1780905407665"
+    CREDENTIALS_PATH: str = "./credentials/iweb-dev-fatwatok-search-0-cr_sa.json"
+    max_retries: int = 3
+    demo_scenario: int = 2  # 0 = real retrieval, 1 = sufficient on first try, 2 = retry once
 
 
 settings = Settings()
